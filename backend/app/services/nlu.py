@@ -2,6 +2,20 @@
 import logging
 from transformers import pipeline
 
+
+_model_loaded = False
+
+def load_nlu_model():
+    global _model_loaded
+    if _model_loaded:
+        return
+    # heavy initialization (downloads, load weights)
+    # ... your current initialization ...
+    _model_loaded = True
+
+def is_nlu_model_loaded() -> bool:
+    return _model_loaded
+
 logger = logging.getLogger("voicebot")
 
 # Load a small, fast classification model
