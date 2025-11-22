@@ -1,3 +1,4 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
 flask
 flask-cors
 python-dotenv
@@ -11,3 +12,4 @@ faiss-cpu
 tiktoken
 transformers
 torch
+gunicorn
