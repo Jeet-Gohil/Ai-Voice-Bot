@@ -47,26 +47,31 @@ jobs:
       # 2. Refer to sample workflows for alternative deployment strategies: https://github.com/Azure/actions-workflow-samples/tree/master/AppService
       
 
-  deploy:
+deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: python-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
-        with:
+       with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_02685599DAC046D6ABEBB9024C1E603D }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C4F14A3988C546749594596482AE9EA1 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_DA3985F1159645C2A82091B7D7E7BF51 }}
 
+      # 🛑 STOP the App to release file locks
+      - name: Stop Azure Web App
+        run: az webapp stop --name Ai-voice-bot --resource-group <YOUR_RESOURCE_GROUP_NAME>
+
+      # 🚀 DEPLOY
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
@@ -74,4 +79,9 @@ jobs:
           app-name: 'Ai-voice-bot'
           slot-name: 'Production'
 
+      # 🟢 START the App again
+      - name: Start Azure Web App
+        run: az webapp start --name Ai-voice-bot --resource-group Ai-voice-bot_group
+
           
+
