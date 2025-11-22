@@ -11,88 +11,101 @@ from firebase_admin import credentials, auth as firebase_auth
 logger = logging.getLogger("voicebot")
 
 # -----------------------------------------------------------
-#  🔥 BASE64-ONLY Firebase Admin Initialization
+#  🔥 ROBUST Firebase Admin Initialization
 # -----------------------------------------------------------
 def init_auth():
-    # 1. Check if already initialized
+    """
+    Initializes Firebase Admin SDK.
+    Supports:
+    1. Base64 Encoded JSON (Env: FIREBASE_SERVICE_ACCOUNT_B64)
+    2. Raw JSON String (Env: FIREBASE_CREDENTIALS)
+    3. Local File (serviceAccountKey.json)
+    """
     if firebase_admin._apps:
-        return
+        return  # Already initialized
 
-    # 2. Try loading from Env Var (Base64)
-    b64 = os.environ.get("FIREBASE_SERVICE_ACCOUNT_B64")
+    # Try to get credentials from various sources
+    b64_creds = os.environ.get("FIREBASE_SERVICE_ACCOUNT_B64")
+    json_creds = os.environ.get("FIREBASE_CREDENTIALS")
     
-    # 3. Try loading from Env Var (Raw JSON - fallback)
-    raw_json = os.environ.get("FIREBASE_CREDENTIALS")
-
     cred_dict = None
 
     try:
-        if b64:
+        # Method 1: Base64 Environment Variable
+        if b64_creds:
             logger.info("Initializing Firebase from BASE64 env var...")
-            decoded = base64.b64decode(b64)
-            cred_dict = json.loads(decoded.decode("utf-8"))
-        elif raw_json:
-            logger.info("Initializing Firebase from RAW JSON env var...")
-            cred_dict = json.loads(raw_json)
-        else:
-            # Fallback: Check for local file
-            local_path = "serviceAccountKey.json"
-            if os.path.exists(local_path):
-                logger.info("Initializing Firebase from local JSON file...")
-                cred = credentials.Certificate(local_path)
-                firebase_admin.initialize_app(cred)
-                return
-            else:
-                logger.warning("❌ No Firebase credentials found (Base64, JSON, or File). Auth may fail.")
-                return
-
-        # --- 🛠️ FIX: Handle Private Key Newlines ---
-        if cred_dict and "private_key" in cred_dict:
-            cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")
+            # Fix: Add padding if missing (common base64 issue)
+            b64_creds += "=" * ((4 - len(b64_creds) % 4) % 4)
+            decoded_bytes = base64.b64decode(b64_creds)
+            cred_dict = json.loads(decoded_bytes.decode("utf-8"))
+            
+        # Method 2: Raw JSON Environment Variable
+        elif json_creds:
+            logger.info("Initializing Firebase from JSON env var...")
+            # Clean up potential quotes added by accident
+            json_creds = json_creds.strip().strip("'").strip('"')
+            cred_dict = json.loads(json_creds)
+            
+        # Method 3: Local File (Dev Mode)
+        elif os.path.exists("serviceAccountKey.json"):
+            logger.info("Initializing Firebase from local file...")
+            cred = credentials.Certificate("serviceAccountKey.json")
+            firebase_admin.initialize_app(cred)
+            return
 
         if cred_dict:
+            # 🛠️ CRITICAL FIX: Handle escaped newlines in private key
+            if "private_key" in cred_dict:
+                cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")
+
             cred = credentials.Certificate(cred_dict)
             firebase_admin.initialize_app(cred)
             logger.info("🔥 Firebase initialized successfully.")
+        else:
+            logger.warning("⚠️ No Firebase credentials found. Authentication will fail.")
 
     except Exception as e:
         logger.exception("❌ Firebase initialization failed: %s", e)
-        # We don't raise RuntimeError here to avoid crashing the whole app on startup, 
-        # but auth will fail later.
-        pass
+        # We log but don't crash immediately, so /health check can still pass
 
 
 # -----------------------------------------------------------
-#  🔐 Token Verification Decorator
+#  🔐 Token Verification Decorator (With Manual CORS)
 # -----------------------------------------------------------
 def firebase_auth_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        # --- 1. Handle CORS Preflight (OPTIONS) ---
+        
+        # ============================================================
+        # 🟢 FIX: MANUALLY INJECT CORS HEADERS FOR PREFLIGHT
+        # ============================================================
+        # This allows the browser's CORS check to pass without a token
         if request.method == "OPTIONS":
             response = make_response()
             response.headers.add("Access-Control-Allow-Origin", "*")
             response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
             response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
-            return response
+            return response, 200
+        # ============================================================
 
-        # --- 2. Check Authorization Header ---
+        # 2. CHECK AUTHORIZATION HEADER
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
             return jsonify({"error": "missing id token"}), 401
 
         id_token = auth_header.split(" ", 1)[1].strip()
 
-        # --- 3. Verify Token ---
+        # 3. VERIFY TOKEN
         try:
-            # Ensure app is initialized (lazy load check)
+            # Lazy load: Ensure auth is initialized before checking token
             if not firebase_admin._apps:
                 init_auth()
-                
+
             decoded = firebase_auth.verify_id_token(id_token)
             request.firebase_user = decoded
+            
         except Exception as e:
-            logger.exception("Firebase token verify failed: %s", e)
+            logger.error(f"Firebase token verify failed: {e}")
             return jsonify({"error": "invalid or expired token", "detail": str(e)}), 401
 
         return f(*args, **kwargs)
