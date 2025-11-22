@@ -1,0 +1,13 @@
+flask
+flask-cors
+python-dotenv
+sqlalchemy
+psycopg2-binary
+firebase-admin
+google-genai
+sentence-transformers
+numpy
+faiss-cpu
+tiktoken
+transformers
+torch

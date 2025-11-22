@@ -1,0 +1,38 @@
+-- 1. Users Table (Stores who is talking to your bot)
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Chat Sessions (Groups messages together into a "conversation")
+CREATE TABLE chat_sessions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    session_name VARCHAR(100),
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- 3. Messages (The actual chat history)
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    session_id INTEGER REFERENCES chat_sessions(id) ON DELETE CASCADE,
+    sender_type VARCHAR(10) CHECK (sender_type IN ('user', 'bot', 'system')),
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Optional: Metadata for your Analytics Dashboard
+    token_count INTEGER DEFAULT 0,
+    model_used VARCHAR(50)
+);
+
+-- 4. Feedback/Analytics (To track if answers were good)
+CREATE TABLE message_feedback (
+    id SERIAL PRIMARY KEY,
+    message_id INTEGER REFERENCES messages(id),
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5), -- 1 to 5 stars
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

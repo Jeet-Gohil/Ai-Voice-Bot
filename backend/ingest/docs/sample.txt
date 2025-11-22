@@ -1,0 +1,63 @@
+# Acme Corporation — Company Overview
+Acme Corporation (Acme Inc.) is a customer-centric technology and services company founded in 2015.
+We provide digital solutions such as customer account management, billing, cloud storage, smart devices, and enterprise backup solutions.
+Our mission is to make digital infrastructure simple, secure, and affordable for individuals and businesses.
+
+# Operating Hours & Contact
+Support Hours: Monday–Friday, 9:00 AM – 6:00 PM (local time).
+For urgent issues outside support hours, customers can use the self-service portal.
+Contact: support@acme.com | Phone: +1-800-123-987
+
+# Account & Billing
+Customers can view their current account balance and billing history in the Acme Customer Portal.
+Payments supported: UPI, credit/debit card, net banking.
+To check balance, users must log in with their registered email or phone number. Account balances update in real-time.
+
+# Products & Services
+Acme Cloud Storage:
+- Encrypted cloud storage for personal and business use.
+- Features: end-to-end encryption, automatic backups, versioning, and secure share links.
+
+Acme Smart Devices:
+- IoT-enabled home automation devices (smart lights, locks, energy meters).
+- Devices connect via Wi-Fi and are managed through the Acme App.
+
+Acme Premium Support:
+- Priority support SLA, 24x7 phone for enterprise customers, dedicated account manager.
+
+Acme Data Backup Solutions:
+- Scheduled backups, incremental backups, and enterprise integration.
+
+# Troubleshooting & Common Fixes
+If a smart device is offline:
+1. Check Wi-Fi network and signal strength.
+2. Restart the router and the device.
+3. Ensure the device firmware is updated.
+4. Reset the device to factory settings (use only if instructed).
+
+If app login fails:
+- Verify your email/phone and password.
+- Reset password via 'Forgot Password' link.
+- Clear app cache and update the app.
+
+# Privacy & Security
+Acme uses industry-standard encryption for data at rest and in transit.
+We do not share personal data without explicit user consent, except as required by law.
+Do not share OTPs or passwords with anyone.
+
+# Refund & Return Policy
+Refunds are processed within 5–7 business days after approval.
+Customers requesting refunds must provide order details and reason for refund, and may be asked for additional verification.
+
+# FAQ (short)
+Q: What are your opening hours?
+A: Monday–Friday, 9 AM – 6 PM.
+
+Q: How can I check my account balance?
+A: Login to the Acme Customer Portal with your registered email or phone number.
+
+Q: How do I contact support?
+A: Email support@acme.com or call +1-800-123-987.
+
+# Additional Notes
+Acme updates its knowledge base weekly. For enterprise integrations, contact enterprise@acme.com.
